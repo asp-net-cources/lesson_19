@@ -5,6 +5,7 @@ using Lesson19.Data.EF;
 using Lesson19.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Prometheus;
 
 namespace Lesson19.Controllers;
 
@@ -27,6 +28,10 @@ public class HomeController : Controller
             Products = (await _dataContext.SelectProducts()).Where(product => product != null)
                 .Cast<ProductModel>().ToList()
         };
+        
+        var counter = Metrics.CreateCounter("prometheus_home_index_get_count", "Home Index Requests Total");
+        counter.Inc();
+        
         return View(model);
     }
 

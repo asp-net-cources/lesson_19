@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Lesson19.Data;
 using Lesson19.Data.EF;
 using Microsoft.EntityFrameworkCore;
+using Prometheus;
 using Serilog;
 using Serilog.Formatting.Compact;
 using Serilog.Formatting.Json;
@@ -59,6 +60,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+app.UseMetricServer();
 app.UseRouting();
 app.UseAuthentication();;
 
@@ -71,6 +73,7 @@ app.MapControllerRoute(
 app.Use(async (context, next) =>
 {
     using (app.Logger.BeginScope("Start handling for random number {RandomNumber}", new Random().Next()))
+        using (app.Logger.BeginScope(new Dictionary<string, int>() { { "UserId", 123} }))
     {
         await next.Invoke();
     }
