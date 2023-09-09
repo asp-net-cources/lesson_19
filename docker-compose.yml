@@ -1,0 +1,13 @@
+version: "3.5"
+services:
+  db:
+    image: mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123
+      - MYSQL_DATABASE=shop
+    volumes:
+        - './db:/var/lib/mysql'
+    ports:
+      - "3306:3306"
+
