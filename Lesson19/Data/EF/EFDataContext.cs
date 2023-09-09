@@ -11,11 +11,11 @@ public class EfDataContext : DbContext, IDataContext {
     // public DbSet<Order> Orders { get; set; }
     public DbSet<Product> Products { get; set; }
 
-    public EfDataContext() {
-        // Database.EnsureDeleted();
-        Database.EnsureCreated();
+    public EfDataContext(DbContextOptions<EfDataContext> options)
+        : base(options)
+    {
     }
-
+    
     public Task<Customer[]> SelectCustomers()
     {
         return Customers.ToArrayAsync();
@@ -89,9 +89,5 @@ public class EfDataContext : DbContext, IDataContext {
                 productType => productType.ToString(),
                 productType => (ProductType)Enum.Parse(typeof(ProductType), productType)
             );
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-        optionsBuilder.UseMySQL("Datasource=localhost;Database=shop;User=root;Password=root123;");
     }
 }

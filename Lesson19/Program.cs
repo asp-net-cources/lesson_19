@@ -1,9 +1,13 @@
 using Lesson19.JsonSettings.Converters;
 using Lesson19.JsonSettings.Policies;
 using System.Text.Json.Serialization;
+using Lesson19.Data;
+using Lesson19.Data.EF;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("Lesson19ContextConnection") ?? throw new InvalidOperationException("Connection string 'Lesson19ContextConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("MySqlConnection")
+                       ?? throw new InvalidOperationException("Connection string 'MySqlConnection' not found.");
 
 // Add services to the container.
 builder.Services.AddControllersWithViews()
@@ -16,6 +20,11 @@ builder.Services.AddControllersWithViews()
         options.JsonSerializerOptions.Converters.Add(new DateTimeJsonConverter());
         options.JsonSerializerOptions.Converters.Add(new ProductJsonConverter());
     });
+
+builder.Services.AddDbContext<IDataContext, EfDataContext>(options =>
+{
+    options.UseMySQL(connectionString);
+});
 
 builder.Services.AddSwaggerGen();
 

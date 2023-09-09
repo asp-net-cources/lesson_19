@@ -8,12 +8,17 @@ namespace Lesson19.Controllers;
 [Route("[controller]")]
 public class ProductController : ControllerBase
 {
-    public readonly IDataContext context = new EfDataContext();
+    private readonly IDataContext _context;
+
+    public ProductController(IDataContext context)
+    {
+        _context = context;
+    }
 
     [HttpGet("{id}")]
     public async Task<ProductModel?> GetProduct([FromRoute]int id)
     {
-        var dbProduct =  (await context.SelectProducts()).FirstOrDefault(product => product.Id == id);
+        var dbProduct =  (await _context.SelectProducts()).FirstOrDefault(product => product.Id == id);
 
         ProductModel product = dbProduct.ProductType switch {
             Data.Models.ProductType.Accessories => new AccessoriesModel(),
@@ -33,7 +38,7 @@ public class ProductController : ControllerBase
     public async Task<ProductModel?> UpdateProduct([FromRoute]int id, [FromBody] ProductModel updatedProduct)
     {
         updatedProduct.Id = id;
-        await context.UpdateProduct(new Data.Models.Product() {
+        await _context.UpdateProduct(new Data.Models.Product() {
             Id = updatedProduct.Id,
             Name = updatedProduct.Name,
             Description = updatedProduct.Description,
@@ -45,7 +50,7 @@ public class ProductController : ControllerBase
 
     [HttpPost("create-product")]
     public async Task<ProductModel?> CreateProduct([FromBody] ProductModel createdProduct) {
-        await context.InsertProduct(new Data.Models.Product() {
+        await _context.InsertProduct(new Data.Models.Product() {
             Id = createdProduct.Id,
             Name = createdProduct.Name,
             Description = createdProduct.Description,
