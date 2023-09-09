@@ -10,20 +10,22 @@ namespace Lesson19.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-
     public IDataContext _dataContext;
 
+
+    private readonly ILogger<HomeController> _logger;
     public HomeController(ILogger<HomeController> logger, IDataContext dataContext)
     {
         _logger = logger;
         _dataContext = dataContext;
     }
 
-    public async Task<IActionResult> Index(string firstname, string lastname, string gender)
+    public async Task<IActionResult> Index(string param)
     {
+        _logger.LogInformation("New request to Home/Index: param:{param}", param);
         var model = new IndexModel {
-            Products = (await _dataContext.SelectProducts()).Where(product => product != null).Cast<ProductModel>().ToList()
+            Products = (await _dataContext.SelectProducts()).Where(product => product != null)
+                .Cast<ProductModel>().ToList()
         };
         return View(model);
     }

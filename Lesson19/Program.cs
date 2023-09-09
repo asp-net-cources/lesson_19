@@ -4,6 +4,11 @@ using System.Text.Json.Serialization;
 using Lesson19.Data;
 using Lesson19.Data.EF;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Formatting.Compact;
+using Serilog.Formatting.Json;
+using Serilog.Sinks.SystemConsole.Themes;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("MySqlConnection")
@@ -27,6 +32,13 @@ builder.Services.AddDbContext<IDataContext, EfDataContext>(options =>
 });
 
 builder.Services.AddSwaggerGen();
+
+builder.Host.UseSerilog((context, configuration) =>
+{
+    configuration
+        .WriteTo.Console(theme: AnsiConsoleTheme.Code)
+        .WriteTo.File(new CompactJsonFormatter(), "logs/log.txt", rollingInterval: RollingInterval.Day);
+});
 
 var app = builder.Build();
 
@@ -58,9 +70,10 @@ app.MapControllerRoute(
 
 app.Use(async (context, next) =>
 {
-    Console.WriteLine("Before handling");
-    await next.Invoke();
-    Console.WriteLine("After handling");
+    using (app.Logger.BeginScope("Start handling for random number {RandomNumber}", new Random().Next()))
+    {
+        await next.Invoke();
+    }
 });
 
 app.Run();
