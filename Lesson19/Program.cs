@@ -1,3 +1,4 @@
+using System.Reflection;
 using Lesson19.JsonSettings.Converters;
 using Lesson19.JsonSettings.Policies;
 using System.Text.Json.Serialization;
@@ -8,6 +9,7 @@ using Prometheus;
 using Serilog;
 using Serilog.Formatting.Compact;
 using Serilog.Formatting.Json;
+using Serilog.Sinks.Elasticsearch;
 using Serilog.Sinks.SystemConsole.Themes;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -38,7 +40,8 @@ builder.Host.UseSerilog((context, configuration) =>
 {
     configuration
         .WriteTo.Console(theme: AnsiConsoleTheme.Code)
-        .WriteTo.File(new CompactJsonFormatter(), "logs/log.txt", rollingInterval: RollingInterval.Day);
+        .WriteTo.File(new CompactJsonFormatter(), "logs/log.txt", rollingInterval: RollingInterval.Day)
+        .WriteTo.Elasticsearch(ConfigureElasticSink(builder.Configuration, builder.Environment.EnvironmentName));
 });
 
 var app = builder.Build();
@@ -57,10 +60,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMetricServer();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseMetricServer();
 app.UseRouting();
 app.UseAuthentication();;
 
@@ -80,3 +83,12 @@ app.Use(async (context, next) =>
 });
 
 app.Run();
+
+ElasticsearchSinkOptions ConfigureElasticSink(IConfigurationRoot configuration, string environment)
+{
+    return new ElasticsearchSinkOptions(new Uri(configuration["ElasticConfiguration:Uri"]))
+    {
+        AutoRegisterTemplate = true,
+        IndexFormat = $"{Assembly.GetExecutingAssembly().GetName().Name?.ToLower().Replace(".", "-")}-{environment?.ToLower().Replace(".", "-")}-{DateTime.UtcNow:yyyy-MM}"
+    };
+}
